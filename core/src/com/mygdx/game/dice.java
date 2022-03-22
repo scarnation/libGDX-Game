@@ -1,4 +1,4 @@
-package com.mygdx;
+package com.mygdx.game;
 
 import java.util.Iterator;
 
@@ -7,8 +7,10 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
@@ -17,22 +19,37 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 
+import org.w3c.dom.Text;
+
 public class dice extends ApplicationAdapter {
 	private Texture dropImage;
+	private Texture paste;
+	private BitmapFont num;
+	private int count;
 	private Texture bucketImage;
 	private Sound dropSound;
 	private Music rainMusic;
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
 	private Rectangle bucket;
+	private Rectangle oscar;
+
 	private Array<Rectangle> raindrops;
 	private long lastDropTime;
+
+
 
 	@Override
 	public void create() {
 		// load the images for the droplet and the bucket, 64x64 pixels each
 		dropImage = new Texture(Gdx.files.internal("drop.png"));
 		bucketImage = new Texture(Gdx.files.internal("bucket.png"));
+		paste= new Texture((Gdx.files.internal("pasty.png")));
+		num = new BitmapFont();
+		num.setColor(Color.WHITE);
+
+		count = 0;
+
 
 		// load the drop sound effect and the rain background "music"
 		dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
@@ -53,6 +70,12 @@ public class dice extends ApplicationAdapter {
 		bucket.y = 20; // bottom left corner of the bucket is 20 pixels above the bottom screen edge
 		bucket.width = 64;
 		bucket.height = 64;
+
+		oscar= new Rectangle();
+		oscar.x= 640;
+		oscar.y= 440;
+		oscar.width= 10;
+		oscar.height=5;
 
 		// create the raindrops array and spawn the first raindrop
 		raindrops = new Array<Rectangle>();
@@ -75,7 +98,7 @@ public class dice extends ApplicationAdapter {
 		// arguments to clear are the red, green
 		// blue and alpha component in the range [0,1]
 		// of the color to be used to clear the screen.
-		ScreenUtils.clear(0, 0, 0.2f, 1);
+		ScreenUtils.clear(2, 0, 6, 1);
 
 		// tell the camera to update its matrices.
 		camera.update();
@@ -87,7 +110,9 @@ public class dice extends ApplicationAdapter {
 		// begin a new batch and draw the bucket and
 		// all drops
 		batch.begin();
+		num.draw(batch,String.valueOf(count),20, 460);
 		batch.draw(bucketImage, bucket.x, bucket.y);
+		batch.draw(paste,oscar.x,oscar.y);
 		for(Rectangle raindrop: raindrops) {
 			batch.draw(dropImage, raindrop.x, raindrop.y);
 		}
@@ -116,11 +141,16 @@ public class dice extends ApplicationAdapter {
 		for (Iterator<Rectangle> iter = raindrops.iterator(); iter.hasNext(); ) {
 			Rectangle raindrop = iter.next();
 			raindrop.y -= 200 * Gdx.graphics.getDeltaTime();
-			if(raindrop.y + 64 < 0) iter.remove();
+			if(raindrop.y + 64 < 0) {
+				iter.remove();
+
+			}
 			if(raindrop.overlaps(bucket)) {
 				dropSound.play();
+				count++;
 				iter.remove();
 			}
+
 		}
 	}
 
@@ -131,6 +161,8 @@ public class dice extends ApplicationAdapter {
 		bucketImage.dispose();
 		dropSound.dispose();
 		rainMusic.dispose();
+		num.dispose();
+		paste.dispose();
 		batch.dispose();
 	}
 }
